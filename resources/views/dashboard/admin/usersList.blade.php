@@ -36,7 +36,7 @@
                                 <a href="{{ url('/users/' . $user->id . '/edit') }}" class="btn btn-block btn-primary">Edit</a>
                               </td>
                               <td>
-                                @if( $you->id !== $user->id )
+                                @if($you->id !== $user->id )
                                 <form action="{{ route('users.destroy', $user->id ) }}" method="POST">
                                     @method('DELETE')
                                     @csrf

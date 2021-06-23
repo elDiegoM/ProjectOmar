@@ -67,9 +67,21 @@ class RegisterController extends Controller
         // Start transaction!
         DB::beginTransaction();
         try {
-            DB::insert('INSERT INTO users (name,email,password,menuroles) values (?,?,?, ?)', [$data['name'],$data['email'],Hash::make($data['password']),'user']);
-            DB::connection('pgsql2')->insert('INSERT INTO users (name,email,password,menuroles) values (?,?,?, ?)', [$data['name'],$data['email'],Hash::make($data['password']),'user']);
-            DB::connection('pgsql3')->insert('INSERT INTO users (name,email,password,menuroles) values (?,?,?, ?)', [$data['name'],$data['email'],Hash::make($data['password']),'user']);
+
+            $id = DB::table('users')->insertGetId(
+                array('name' =>$data['name'],'email' =>$data['email'],'password' =>Hash::make($data['password']),'menuroles' => 'admin','created_at' =>now())
+            );
+
+            DB::connection('pgsql2')->table('users')->insertGetId(
+                array('name' =>$data['name'],'email' =>$data['email'],'password' =>Hash::make($data['password']),'menuroles' => 'admin','created_at' =>now())
+            );
+
+            DB::connection('pgsql3')->table('users')->insertGetId(
+                array('name' =>$data['name'],'email' =>$data['email'],'password' =>Hash::make($data['password']),'menuroles' => 'admin','created_at' =>now())
+            );
+
+            DB::connection('pgsql')->insert('INSERT INTO model_has_roles(role_id,model_type,model_id) values (?,?,?)',[2,"App\Models\User",$id]);
+
         } catch (ValidationException $e) {
             DB::rollback();
         } catch (\Exception $e) {

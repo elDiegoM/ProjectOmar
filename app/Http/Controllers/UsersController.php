@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-
+use Illuminate\Support\Facades\DB;
 class UsersController extends Controller
 {
 
@@ -84,10 +84,22 @@ class UsersController extends Controller
      */
     public function destroy($id)
     {
-        $user = User::find($id);
-        if($user){
-            $user->delete();
+        $usuario = DB::table('users')->where('id',$id)->first();
+        //dd($usuario->name);
+
+        // Start transaction!
+        DB::beginTransaction();
+        try {
+            DB::table('users')->where('id',$id)->delete();
+            DB::connection('pgsql2')->table('users')->where('email',$usuario->email)->delete();
+            DB::connection('pgsql3')->table('users')->where('email',$usuario->email)->delete();
+        } catch (ValidationException $e) {
+            DB::rollback();
+        } catch (\Exception $e) {
+            DB::rollback();
         }
+        DB::commit();
+
         return redirect()->route('users.index');
     }
 }
